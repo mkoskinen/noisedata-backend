@@ -1,3 +1,4 @@
+import datetime
 import json
 import logging
 import os
@@ -38,6 +39,12 @@ def test_postgres_connection():
             if db_conn:
                 db_conn.close()
 
+class DateEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime.date):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
+
 def get_closest_noisedata_by_coordinates(latitude, longitude):
     with psycopg2.connect(os.environ['POSTGRES_URI']) as pg_conn:
         with pg_conn.cursor() as cursor:
@@ -50,13 +57,21 @@ def get_closest_noisedata_by_coordinates(latitude, longitude):
                        ORDER BY distance ASC
                        LIMIT 1;""" 
             cursor.execute(sql, (longitude, latitude,))
+            result = cursor.fetchone()
+            logging.info("Query result: %s", result)
+            return json.dumps(result, cls=DateEncoder)
 
 class NoisedataByCoordinates(Resource):
     """ Something like GET /api/v1/noise/60.165249,24.936056 should return the noisedata from the closest location """
     def get(self, coordinates_string):
+        # WARNING: Add checks here
+        latitude, longitude = coordinates_string.split(",")
+        latitude, longitude = (round(float(latitude), 5), round(float(longitude), 5))
+
         return {
                   'asking for'  : coordinates_string,
-                  'result'      : get_closest_noisedata_by_coordinates("60.165249", "24.936056")
+                  'floats'	: "{} {}".format(latitude, longitude),
+                  'result'      : get_closest_noisedata_by_coordinates(latitude, longitude)
                }
 
 api.add_resource(NoisedataByCoordinates, '/api/v1/noise/<string:coordinates_string>')
