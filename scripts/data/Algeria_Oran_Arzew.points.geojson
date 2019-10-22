@@ -1,0 +1,8 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.3379152,35.8436993,0]},"properties":{"pk_track":61757,"time_ISO8601":"2018-03-23T02:46:09+01:00","time_epoch":1521769569000,"time_gps_ISO8601":"2018-03-23T02:46:06+01:00","time_gps_epoch":1521769566000,"noise_level":57.446598,"speed":null,"orientation":null,"accuracy":21.6}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.3379152,35.8436993,0]},"properties":{"pk_track":61757,"time_ISO8601":"2018-03-23T02:46:10+01:00","time_epoch":1521769570000,"time_gps_ISO8601":"2018-03-23T02:46:06+01:00","time_gps_epoch":1521769566000,"noise_level":52.93268,"speed":null,"orientation":null,"accuracy":21.6}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.3379152,35.8436993,0]},"properties":{"pk_track":61757,"time_ISO8601":"2018-03-23T02:46:11+01:00","time_epoch":1521769571000,"time_gps_ISO8601":"2018-03-23T02:46:06+01:00","time_gps_epoch":1521769566000,"noise_level":53.123272,"speed":null,"orientation":null,"accuracy":21.6}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[-0.3379152,35.8436993,0]},"properties":{"pk_track":61757,"time_ISO8601":"2018-03-23T02:46:12+01:00","time_epoch":1521769572000,"time_gps_ISO8601":"2018-03-23T02:46:06+01:00","time_gps_epoch":1521769566000,"noise_level":50.641098,"speed":null,"orientation":null,"accuracy":21.6}}]
+}
