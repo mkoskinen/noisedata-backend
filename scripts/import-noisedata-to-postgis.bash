@@ -6,16 +6,23 @@
 # Author: Markus Koskinen
 # License: BSD
 #
-# Enable PostGIS in pg and export postgres credentials in format as follows:
-# POSTGRES_CREDENTIALS="host=noisedata.postgis-example.com port=5432 user='postgres' password='secret' dbname='noisedata'"
+# Enable PostGIS in pg and export postgres credentials in format as follows (we need both for now):
+#
+# export POSTGRES_CREDENTIALS="host=noisedata.postgis-example.com port=5432 user='markus' password='secret' dbname='noisedata'"
+# export POSTGRES_URI="postgres://markus:secret@localhost:5432/noisedata"
+
+function time_fun()
+{
+  /bin/time -f '%E real,%U user,%S sys' $*
+}
 
 # remove duplicates and over 1y old entries from the tmp_table then copy data to the main table
 function tmp_table_cleanup_and_copy()
 {
   echo "Deleting over 1y old data from temporary table ..."
-  psql $POSTGRES_URI -c "DELETE FROM tmp_noisedata WHERE time_iso8601 < (current_date - interval '12 months');"
+  time_fun psql $POSTGRES_URI -c "DELETE FROM tmp_noisedata WHERE time_iso8601 < (current_date - interval '12 months');"
   echo "Deleting non-latest duplicate coordinate entries from temporary table ..."
-  psql $POSTGRES_URI -c "DELETE FROM tmp_noisedata tmp1 using tmp_noisedata tmp2 WHERE tmp1.time_iso8601 < tmp2.time_iso8601 AND tmp1.wkb_geometry = tmp2.wkb_geometry;"
+  time_fun psql $POSTGRES_URI -c "DELETE FROM tmp_noisedata tmp1 using tmp_noisedata tmp2 WHERE tmp1.time_iso8601 < tmp2.time_iso8601 AND tmp1.wkb_geometry = tmp2.wkb_geometry;"
   echo "Initial noisedata table create. This not elegant and will error often."
   psql $POSTGRES_URI -c "CREATE TABLE IF NOT EXISTS noisedata AS SELECT * FROM tmp_noisedata;"
   echo "Copy tmp_noisedata to noisedata ..."
@@ -36,7 +43,7 @@ function points_gis_export_loop()
     echo "Handling pointsfile: ${pointsfile}"
 
     # Insert geojsons to PostGIS   
-    ogr2ogr -f PostgreSQL PG:"${POSTGRES_CREDENTIALS}" "${pointsfile}" -nln tmp_noisedata
+    time_fun ogr2ogr -f PostgreSQL PG:"${POSTGRES_CREDENTIALS}" "${pointsfile}" -nln tmp_noisedata
     tmp_table_cleanup_and_copy
     rm "${pointsfile}"
   done
@@ -58,7 +65,8 @@ function zip_extraction_loop()
     if [ $? -eq 0 ]; then
       points_gis_export_loop
     fi
-    rm "${zfile}"
+    # Let's see if we can rely on wget's -N and not have redundant downloads
+    #rm "${zfile}"
   done
 
   IFS=$SAVEIFS
@@ -83,9 +91,12 @@ echo "Initialize main table ..."
 ogr2ogr -f PostgreSQL PG:"${POSTGRES_CREDENTIALS}" data/Algeria_Oran_Arzew.points.geojson -nln noisedata
 
 # Get the zipfiles
-rm -rf ./data.noise-planet.org
+# rm -rf ./data.noise-planet.org
 # -N newer only, -c continue interrupted - check this works
 wget -c -N -r -np -R "index.html*" https://data.noise-planet.org/noisecapture/
 
+echo $$ :: import start :: $(date) >> startstop.log
+
 zip_extraction_loop
 
+echo $$ :: import end :: $(date) >> startstop.log
