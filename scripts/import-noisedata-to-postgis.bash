@@ -23,7 +23,7 @@ function tmp_table_cleanup_and_copy()
   time_fun psql $POSTGRES_URI -c "DELETE FROM tmp_noisedata WHERE time_iso8601 < (current_date - interval '12 months');"
   echo "Deleting non-latest duplicate coordinate entries from temporary table ..."
   time_fun psql $POSTGRES_URI -c "DELETE FROM tmp_noisedata tmp1 using tmp_noisedata tmp2 WHERE tmp1.time_iso8601 < tmp2.time_iso8601 AND tmp1.wkb_geometry = tmp2.wkb_geometry;"
-  echo "Initial noisedata table create. This not elegant and will error often."
+  echo "Initial noisedata table create. This not elegant and will cause lots of notices."
   psql $POSTGRES_URI -c "CREATE TABLE IF NOT EXISTS noisedata AS SELECT * FROM tmp_noisedata;"
   echo "Copy tmp_noisedata to noisedata ..."
   psql $POSTGRES_URI -c "INSERT INTO noisedata(time_iso8601,time_epoch,time_gps_iso8601,time_gps_epoch,noise_level,accuracy,wkb_geometry) SELECT time_iso8601,time_epoch,time_gps_iso8601,time_gps_epoch,noise_level,accuracy,wkb_geometry FROM tmp_noisedata;"
