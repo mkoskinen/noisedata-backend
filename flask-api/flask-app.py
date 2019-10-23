@@ -59,7 +59,7 @@ def get_closest_noisedata_by_coordinates(latitude, longitude):
             cursor.execute(sql, (longitude, latitude,))
             result = cursor.fetchone()
             logging.info("Query result: %s", result)
-            return json.dumps(result, cls=DateEncoder)
+            return result
 
 class NoisedataByCoordinates(Resource):
     """ Something like GET /api/v1/noise/60.165249,24.936056 should return the noisedata from the closest location """
@@ -68,11 +68,20 @@ class NoisedataByCoordinates(Resource):
         latitude, longitude = coordinates_string.split(",")
         latitude, longitude = (round(float(latitude), 5), round(float(longitude), 5))
 
-        return {
-                  'asking for'  : coordinates_string,
-                  'floats'	: "{} {}".format(latitude, longitude),
-                  'result'      : get_closest_noisedata_by_coordinates(latitude, longitude)
-               }
+        query_result = get_closest_noisedata_by_coordinates(latitude, longitude)
+
+        print("Query result %s", query_result)
+
+        result = {
+                   'client_query'  		: coordinates_string,
+                   'sanitized_client_query'	: "{},{}".format(latitude, longitude),
+                   'result_time_iso8601'      	: str(query_result[0]),
+                   'result_noise_level'		: query_result[1],
+                   'result_coords'		: query_result[2],
+                   'result_distance'		: query_result[3]
+                 }
+        return result
+
 
 api.add_resource(NoisedataByCoordinates, '/api/v1/noise/<string:coordinates_string>')
 
