@@ -40,7 +40,7 @@ function points_gis_export_loop()
 
   for pointsfile in $(ls -1 ./workdir/*points.geojson)
   do
-    echo "Handling pointsfile: ${pointsfile}"
+    echo "Handling pointsfile: ${pointsfile} at $(date)"
 
     # Insert geojsons to PostGIS   
     time_fun ogr2ogr -f PostgreSQL PG:"${POSTGRES_CREDENTIALS}" "${pointsfile}" -nln tmp_noisedata
